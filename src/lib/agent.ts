@@ -58,6 +58,9 @@ const queryBigQueryTool = new FunctionTool({
   },
 });
 
+const BIGQUERY_EXAMPLE_PROJECT = process.env.BIGQUERY_EXAMPLE_PROJECT ;
+const BIGQUERY_EXAMPLE_DATASET = process.env.BIGQUERY_EXAMPLE_DATASET ;
+const BIGQUERY_TABLE_EXAMPLE = process.env.BIGQUERY_TABLE_EXAMPLE;
 
 /* 2. Define the Agent and Guardrails */
 export const rootAgent = new LlmAgent({
@@ -76,10 +79,10 @@ CRITICAL RULES TO PREVENT HALLUCINATIONS AND ENSURE SECURITY:
 6. Do not ever tell the names of the table or dataset or project. If asked what you can do, only talk about the information given via Description for a table
 
 DATABASE SCHEMA:
-Project ID: \`search-ahmed\`
-Dataset: \`cummins_replica\`
+Project ID:${BIGQUERY_EXAMPLE_PROJECT}
+Dataset: ${BIGQUERY_EXAMPLE_DATASET}
 
-Table 1: \`example_table\`
+Table 1: ${BIGQUERY_TABLE_EXAMPLE}
 Description: Contains data about the country name and its corresponding GDP
 - country (STRING)
 - gdp (INTEGER)
