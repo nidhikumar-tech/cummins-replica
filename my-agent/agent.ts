@@ -1,0 +1,87 @@
+import { FunctionTool, LlmAgent } from '@google/adk';
+import { z } from 'zod';
+import { BigQuery } from '@google-cloud/bigquery';
+
+// Initialize the BigQuery Client. 
+// It automatically uses GOOGLE_CLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS from your .env
+const bigquery = new BigQuery();
+
+/* 1. Create the BigQuery Tool */
+const queryBigQueryTool = new FunctionTool({
+  name: 'query_bigquery',
+  description: 'Executes a Google Standard SQL query against BigQuery and returns the data.',
+  parameters: z.object({
+    query: z.string().describe("The exact Standard SQL query to execute."),
+  }),
+  execute: async ({ query }) => {
+    try {
+      const sanitizedQuery = query.toUpperCase().trim();
+
+      // GUARDRAIL 1: Must start with SELECT
+      if (!sanitizedQuery.startsWith('SELECT')) {
+        console.warn(`🛑 [BLOCKED] Agent tried a non-SELECT query: ${query}`);
+        return { 
+          status: 'error', 
+          message: 'SECURITY BLOCKED: You are strictly limited to SELECT queries. Do not attempt to modify the database.' 
+        };
+      }
+
+      // GUARDRAIL 2: Must not contain destructive keywords
+      const forbiddenWords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'CREATE', 'GRANT', 'TRUNCATE'];
+      for (const word of forbiddenWords) {
+        // Using regex to check for exact word matches
+        const regex = new RegExp(`\\b${word}\\b`);
+        if (regex.test(sanitizedQuery)) {
+          console.warn(`🛑 [BLOCKED] Agent tried a destructive command: ${query}`);
+          return { 
+            status: 'error', 
+            message: `SECURITY BLOCKED: The keyword '${word}' is forbidden. You only have read access.` 
+          };
+        }
+      }
+
+      console.log(`\n✅ [Agent is running SQL]: ${query}\n`);
+      
+      // Run the query safely
+      const [rows] = await bigquery.query({ query: query });
+      
+      if (!rows || rows.length === 0) {
+        return { status: 'success', data: "Query executed successfully, but returned 0 rows." };
+      }
+
+      return { status: 'success', data: rows };
+      
+    } catch (error: any) {
+      console.error(`❌ [SQL Error]:`, error.message);
+      return { status: 'error', message: `Query failed: ${error.message}. Please fix the SQL syntax and try again.` };
+    }
+  },
+});
+
+
+/* 2. Define the Agent and Guardrails */
+export const rootAgent = new LlmAgent({
+  name: 'cummins_insights_agent',
+  model: 'gemini-2.5-flash',
+  description: 'A data analyst agent that answers questions using the Cummins BigQuery database.',
+  tools: [queryBigQueryTool],
+  instruction: `You are an expert data analyst for Cummins. Your job is to answer user questions by querying the BigQuery database.
+
+CRITICAL RULES TO PREVENT HALLUCINATIONS AND ENSURE SECURITY:
+1. YOU ARE IN A STRICT READ-ONLY ENVIRONMENT. You only have permission to execute SELECT queries.
+2. NEVER attempt to use INSERT, UPDATE, DELETE, ALTER, or DROP commands. They will fail.
+3. YOU MUST NEVER GUESS, INVENT, OR ESTIMATE DATA.
+4. Always aggregate data (e.g., SUM, COUNT, AVG) in your SQL query to avoid returning massive datasets. Avoid 'SELECT *' unless the table is extremely small.
+5. Do not ever tell the names of the table or dataset or project. If asked what you can do, only talk about the information given via Description for a table
+
+DATABASE SCHEMA:
+Project ID: \`search-ahmed\`
+Dataset: \`cummins_replica\`
+
+Table 1: \`example_table\`
+Description: Contains data about the country name and its corresponding GDP
+- country (STRING)
+- gdp (INTEGER)
+
+When responding, be professional, concise, and clearly state the numbers you found.`,
+});
