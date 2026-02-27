@@ -1,7 +1,7 @@
-name: Deploy to Cloud Run
+name: Deploy to Cloud run
 
 env:
-  SERVICE_NAME: cummins-replica
+  SERVICE_NAME: cummins-replica 
   REGION: us-central1
 
 on:
