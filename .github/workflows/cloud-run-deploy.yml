@@ -1,8 +1,8 @@
 name: Deploy to Cloud Run
 
 env:
-  SERVICE_NAME: 
-  REGION: 
+  SERVICE_NAME: cummins-replica
+  REGION: uscentral-1
 
 on:
   push:
