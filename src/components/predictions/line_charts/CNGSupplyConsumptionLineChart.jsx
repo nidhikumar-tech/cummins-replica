@@ -8,7 +8,7 @@ import { Line } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export default function CNGSupplyConsumptionLineChart() {
+export default function CNGSupplyConsumptionLineChart({ isSummaryView = false }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState('');
@@ -103,7 +103,7 @@ export default function CNGSupplyConsumptionLineChart() {
     plugins: {
       title: { display: true, text: 'CNG Total Supply vs Consumption (2023-2050)', align: 'start', font: { size: 16 }, padding: { bottom: 25 } },
       legend: {
-        display: true,
+        display: !isSummaryView,
         position: 'top',
         align: 'end',
         labels: {
@@ -135,8 +135,23 @@ export default function CNGSupplyConsumptionLineChart() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    // [CHANGE 2] Toggle styles based on isSummaryView
+    <div style={{ 
+      background: 'white', 
+      padding: isSummaryView ? '0px' : '20px', 
+      borderRadius: '8px',
+      height: '100%',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset'
+    }}>
+      <div style={{ 
+        marginBottom: '20px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '10px', 
+        flexWrap: 'wrap',
+        flexShrink: 0 // Prevent header from squishing
+      }}>
         <label style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
         <select
           value={selectedCase}
@@ -147,7 +162,9 @@ export default function CNGSupplyConsumptionLineChart() {
         </select>
         {units && <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '14px', fontStyle: 'italic' }}>Units: {units}</div>}
       </div>
-      <div style={{ height: '500px' }}>
+      
+      {/* [CHANGE 3] Toggle between flexGrow and 500px height */}
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '500px', position: 'relative' }}>
         {chartData ? <Line data={chartData} options={options} /> : <p style={{ textAlign: 'center' }}>No data available</p>}
       </div>
     </div>

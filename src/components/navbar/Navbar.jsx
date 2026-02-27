@@ -92,7 +92,7 @@ export default function Navbar() {
             </svg>
             <span>Predictions</span>
           </Link>
-
+{/*
           <Link
             href="/dashboard/summary"
             className={`${styles.navLink} ${isActive("/dashboard/summary")}`}
@@ -103,6 +103,8 @@ export default function Navbar() {
             </svg>
             <span>Summary</span>
           </Link>
+
+*/}
 
         </div>
       )}

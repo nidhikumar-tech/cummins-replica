@@ -8,7 +8,7 @@ import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function CNGCombinedBarChart() {
+export default function CNGCombinedBarChart({ isSummaryView = false }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCase, setSelectedCase] = useState('');
@@ -133,6 +133,7 @@ export default function CNGCombinedBarChart() {
     plugins: {
       title: { display: true, text: 'CNG Production, Net Import & Consumption (2023-2050)', align: 'start', font: { size: 16 }, padding: { bottom: 25 } },
       legend: { 
+        display: !isSummaryView,
         position: 'bottom', 
         labels: { boxWidth: 10, font: { size: 10 }, padding: 8 },
         align: 'center'
@@ -164,8 +165,22 @@ export default function CNGCombinedBarChart() {
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>;
 
   return (
-    <div style={{ background: 'white', padding: '20px', borderRadius: '8px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+    <div style={{ 
+      background: 'white', 
+      padding: isSummaryView ? '0px' : '20px', 
+      borderRadius: '8px',
+      height: '100%',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset'
+    }}>
+      <div style={{ 
+        marginBottom: '20px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '10px', 
+        flexWrap: 'wrap',
+        flexShrink: 0
+      }}>
         <label style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
         <select
           value={selectedCase}
@@ -176,7 +191,9 @@ export default function CNGCombinedBarChart() {
         </select>
         {units && <div style={{ marginLeft: 'auto', color: '#64748b', fontSize: '14px', fontStyle: 'italic' }}>Units: {units}</div>}
       </div>
-      <div style={{ height: '600px' }}>
+
+      {/* [CHANGE 3] Toggle between flexGrow and 600px height */}
+      <div style={isSummaryView ? { flexGrow: 1, minHeight: 0, position: 'relative' } : { height: '600px', position: 'relative' }}>
         {data ? <Bar data={data} options={options} /> : <p style={{ textAlign: 'center' }}>No data available</p>}
       </div>
     </div>

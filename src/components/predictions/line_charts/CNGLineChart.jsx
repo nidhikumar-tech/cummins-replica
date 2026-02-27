@@ -29,7 +29,8 @@ export default function CNGLineChart({
   label,
   borderColor = '#10b981',
   backgroundColor = 'rgba(16, 185, 129, 0.1)',
-  title = null
+  title = null,
+  isSummaryView = false
 }) {
   const [allData, setAllData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +154,7 @@ export default function CNGLineChart({
     maintainAspectRatio: false,
     plugins: {
       legend: {
+        display: !isSummaryView,
         position: 'top',
         align: selectedCase === 'All' ? 'center' : 'end'
       },
@@ -199,7 +201,15 @@ export default function CNGLineChart({
   }), [title, label, units, selectedCase]);
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      padding: isSummaryView ? '0px' : '20px', 
+      background: 'white', 
+      borderRadius: '8px',
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset'
+    }}>
       {/* Case Filter */}
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
         <label htmlFor="case-select" style={{ fontWeight: '600', color: '#475569' }}>Select Case:</label>
@@ -228,7 +238,7 @@ export default function CNGLineChart({
       </div>
 
       {/* Chart */}
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={isSummaryView ? { flexGrow: 1, width: '100%', minHeight: 0, position: 'relative' } : { height: '500px', width: '100%', position: 'relative' }}>
         {loading && <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>}
         {error && <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>}
         {chartData && !loading && !error && <Line data={chartData} options={options} />}

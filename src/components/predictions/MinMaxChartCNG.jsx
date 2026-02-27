@@ -37,7 +37,7 @@ const US_STATES = new Set([
   'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
-export default function MinMaxChartCNG() {
+export default function MinMaxChartCNG({ isSummaryView = false }) {
   const [yearwiseData, setYearwiseData] = useState([]);
   const [statewiseData, setStatewiseData] = useState([]);
   const [states, setStates] = useState([]);
@@ -279,6 +279,7 @@ export default function MinMaxChartCNG() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
+        display: !isSummaryView,
         position: 'top',
         align: 'end',
         labels: {
@@ -347,10 +348,27 @@ export default function MinMaxChartCNG() {
 
   
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div style={{ 
+      width: '100%', 
+      height: '100%',
+      // [CHANGE 2] Apply flex layout and remove padding ONLY if isSummaryView is true
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      padding: isSummaryView ? '0px' : '20px', 
+      background: 'white', 
+      borderRadius: '8px' 
+    }}>
       
       {/* Filter Controls */}
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ 
+        marginBottom: '16px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '10px', 
+        flexWrap: 'wrap',
+        // Prevent squishing in flex layout
+        flexShrink: 0 
+      }}>
         
         {/* Mode Selection Dropdown */}
         <label style={{ fontWeight: '600', color: '#475569' }}>Mode:</label>
@@ -396,7 +414,11 @@ export default function MinMaxChartCNG() {
       </div>
 
       {/* Chart Container */}
-      <div style={{ height: '400px', width: '100%' }}>
+      <div style={
+        isSummaryView 
+        ? { flexGrow: 1, width: '100%', position: 'relative', minHeight: 0 } 
+        : { height: '400px', width: '100%' }
+      }>
         {loading && <div style={{ padding: '20px', textAlign: 'center' }}>Loading Chart Data...</div>}
         {error && <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>}
         {chartData && !loading && !error && <Line data={chartData} options={options} />}

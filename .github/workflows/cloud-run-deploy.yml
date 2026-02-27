@@ -1,8 +1,8 @@
 name: Deploy to Cloud Run
 
 env:
-  SERVICE_NAME: cummins-demo-ready
-  REGION: us-central1
+  SERVICE_NAME: 
+  REGION: 
 
 on:
   push:

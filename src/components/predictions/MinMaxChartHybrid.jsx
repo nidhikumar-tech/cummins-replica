@@ -36,7 +36,7 @@ const US_STATES = new Set([
   'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ]);
 
-export default function MinMaxChartHybrid() {
+export default function MinMaxChartHybrid({ isSummaryView = false }) {
   const [yearwiseData, setYearwiseData] = useState([]);
   const [statewiseData, setStatewiseData] = useState([]);
   const [states, setStates] = useState([]);
@@ -263,6 +263,7 @@ export default function MinMaxChartHybrid() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
+        display: !isSummaryView,
         position: 'top',
         align: 'end',
         labels: {
@@ -325,10 +326,26 @@ export default function MinMaxChartHybrid() {
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>{error}</div>;
 
   return (
-    <div style={{ width: '100%', height: '100%', padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      // [CHANGE 2] Apply flex layout and remove padding ONLY if isSummaryView is true
+      display: isSummaryView ? 'flex' : 'block',
+      flexDirection: isSummaryView ? 'column' : 'unset',
+      padding: isSummaryView ? '0px' : '20px', 
+      background: 'white', 
+      borderRadius: '8px' 
+    }}>
       
       {/* Filter Controls */}
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={{ 
+        marginBottom: '16px', // Slightly tightened margin
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '10px', 
+        flexWrap: 'wrap',
+        flexShrink: 0 // Prevent squishing in flex layout
+      }}>
         
         {/* Mode Selection Dropdown */}
         <label style={{ fontWeight: '600', color: '#475569' }}>Mode:</label>
@@ -374,7 +391,11 @@ export default function MinMaxChartHybrid() {
       </div>
 
       {/* Chart Container */}
-      <div style={{ height: '400px', width: '100%' }}>
+      <div style={
+        isSummaryView 
+        ? { flexGrow: 1, width: '100%', position: 'relative', minHeight: 0 } 
+        : { height: '400px', width: '100%' }
+      }>
         {chartData && !loading && !error && <Line data={chartData} options={options} />}
         {!chartData && !loading && !error && <p>No data available for this selection.</p>}
       </div>
