@@ -61,6 +61,7 @@ const queryBigQueryTool = new FunctionTool({
 const BIGQUERY_EXAMPLE_PROJECT = process.env.BIGQUERY_EXAMPLE_PROJECT ;
 const BIGQUERY_EXAMPLE_DATASET = process.env.BIGQUERY_EXAMPLE_DATASET ;
 const BIGQUERY_TABLE_EXAMPLE = process.env.BIGQUERY_TABLE_EXAMPLE;
+const BIGQUERY_DESCRIPTION_EXAMPLE = process.env.BIGQUERY_DESCRIPTION_EXAMPLE;
 
 /* 2. Define the Agent and Guardrails */
 export const rootAgent = new LlmAgent({
@@ -83,9 +84,8 @@ Project ID:${BIGQUERY_EXAMPLE_PROJECT}
 Dataset: ${BIGQUERY_EXAMPLE_DATASET}
 
 Table 1: ${BIGQUERY_TABLE_EXAMPLE}
-Description: Contains data about the country name and its corresponding GDP
-- country (STRING)
-- gdp (INTEGER)
+Description: ${BIGQUERY_DESCRIPTION_EXAMPLE}
+
 
 When responding, be professional, concise, and clearly state the numbers you found.`,
 });
