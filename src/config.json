@@ -35,5 +35,7 @@
 "BIGQUERY_EXAMPLE_PROJECT":"search-ahmed",
 "BIGQUERY_EXAMPLE_DATASET":"cummins_replica",
 "BIGQUERY_TABLE_EXAMPLE":"example_table",
-"BIGQUERY_DESCRIPTION_EXAMPLE":"Contains data about the country name and its corresponding GDP- country (STRING)- gdp (INTEGER)"
+"BIGQUERY_DESCRIPTION_EXAMPLE":"Contains data about the country name and its corresponding GDP- country (STRING)- gdp (INTEGER)", 
+"AGENT_PROJECT": "search-ahmed",
+"AGENT_DATASET": "onix_predictive_temp_data"
 }
