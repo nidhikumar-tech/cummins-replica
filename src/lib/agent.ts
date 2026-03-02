@@ -1,6 +1,7 @@
 import { FunctionTool, LlmAgent } from '@google/adk';
 import { z } from 'zod';
 import { BigQuery } from '@google-cloud/bigquery';
+import config from '../config.json';
 
 // Initialize the BigQuery Client. 
 // It automatically uses GOOGLE_CLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS from your .env
@@ -35,7 +36,7 @@ const queryBigQueryTool = new FunctionTool({
           console.warn(`🛑 [BLOCKED] Agent tried a destructive command: ${query}`);
           return { 
             status: 'error', 
-            message: `SECURITY BLOCKED: The keyword '${word}' is forbidden. You only have read access.` 
+            message: `SECURITY BLOCKED: The keyword '${word}' is forbidden. You can only ask me for insights.` 
           };
         }
       }
@@ -58,10 +59,10 @@ const queryBigQueryTool = new FunctionTool({
   },
 });
 
-const BIGQUERY_EXAMPLE_PROJECT = process.env.BIGQUERY_EXAMPLE_PROJECT ;
-const BIGQUERY_EXAMPLE_DATASET = process.env.BIGQUERY_EXAMPLE_DATASET ;
-const BIGQUERY_TABLE_EXAMPLE = process.env.BIGQUERY_TABLE_EXAMPLE;
-const BIGQUERY_DESCRIPTION_EXAMPLE = process.env.BIGQUERY_DESCRIPTION_EXAMPLE;
+const BIGQUERY_EXAMPLE_PROJECT = config.BIGQUERY_EXAMPLE_PROJECT ;
+const BIGQUERY_EXAMPLE_DATASET = config.BIGQUERY_EXAMPLE_DATASET ;
+const BIGQUERY_TABLE_EXAMPLE = config.BIGQUERY_TABLE_EXAMPLE;
+const BIGQUERY_DESCRIPTION_EXAMPLE = config.BIGQUERY_DESCRIPTION_EXAMPLE;
 
 /* 2. Define the Agent and Guardrails */
 export const rootAgent = new LlmAgent({
