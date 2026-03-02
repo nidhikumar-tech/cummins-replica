@@ -1,13 +1,14 @@
 import { BigQuery } from '@google-cloud/bigquery';
+import config from '../config.json';
 
 // Initialize BigQuery client
 const bigquery = new BigQuery({
-  projectId: process.env.GCP_PROJECT_ID,
+  projectId: config.GCP_PROJECT_ID,
 });
 
 export async function getFuelStations(fuelType = null, status = null) {
 
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -38,13 +39,13 @@ export async function getFuelStations(fuelType = null, status = null) {
     Latitude AS latitude,
     Longitude AS longitude,
     ID AS id
-  FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_2}\`
+  FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_2}\`
   ${whereClause}
 `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -60,7 +61,7 @@ export async function getFuelStations(fuelType = null, status = null) {
 
 export async function getVehicleData(year = null) {
 
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
@@ -74,7 +75,7 @@ export async function getVehicleData(year = null) {
       actual_cng_vehicles AS actual_vehicles, 
       predicted_cng_vehicles AS predicted_vehicles, 
       fuel_type
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_1}\`
     
     UNION ALL
     
@@ -85,12 +86,12 @@ export async function getVehicleData(year = null) {
       actual_ev_vehicles AS actual_vehicles, 
       predicted_ev_vehicles AS predicted_vehicles, 
       fuel_type
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_3}\`
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -115,16 +116,16 @@ export async function getVehicleData(year = null) {
 // @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
 // NEW: Fetch CNG data for YEARWISE (US Aggregate) from cng_forecast_final_prophet
 export async function getCNGDataYearwise(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
   // Debug: Log environment variables
   console.log('ENV DEBUG - Yearwise:', {
-    project: process.env.GCP_PROJECT_ID,
-    dataset: process.env.BIGQUERY_DATASET_2,
-    table: process.env.BIGQUERY_TABLE_5,
-    location: process.env.BIGQUERY_LOCATION_2
+    project: config.GCP_PROJECT_ID,
+    dataset: config.BIGQUERY_DATASET_2,
+    table: config.BIGQUERY_TABLE_5,
+    location: config.BIGQUERY_LOCATION_2
   });
   
   const query = `
@@ -134,7 +135,7 @@ export async function getCNGDataYearwise(year = null) {
       predicted_cng_vehicles,
       actual_cng_vehicles,
       fuel_type
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_5}\`
     ORDER BY year
   `;
 
@@ -142,7 +143,7 @@ export async function getCNGDataYearwise(year = null) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -167,16 +168,16 @@ export async function getCNGDataYearwise(year = null) {
 
 // NEW: Fetch CNG data for STATEWISE from cng_prophet_forecast_2010_2040_final
 export async function getCNGDataStatewise(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
   // Debug: Log environment variables
   console.log('ENV DEBUG - Statewise:', {
-    project: process.env.GCP_PROJECT_ID,
-    dataset: process.env.BIGQUERY_DATASET_2,
-    table: process.env.BIGQUERY_TABLE_9,
-    location: process.env.BIGQUERY_LOCATION_2
+    project: config.GCP_PROJECT_ID,
+    dataset: config.BIGQUERY_DATASET_2,
+    table: config.BIGQUERY_TABLE_9,
+    location: config.BIGQUERY_LOCATION_2
   });
   
   const query = `
@@ -187,7 +188,7 @@ export async function getCNGDataStatewise(year = null) {
       cng_fuel_price,
       actual_cng_vehicles,
       predicted_cng_vehicles
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_1}\`
     ORDER BY year, state
   `;
 
@@ -195,7 +196,7 @@ export async function getCNGDataStatewise(year = null) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -221,7 +222,7 @@ export async function getCNGDataStatewise(year = null) {
 // LEGACY: Keep for backward compatibility (currently used by old implementation)
 export async function getVehicleDataForMinMax(year = null) {
 
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
@@ -229,12 +230,12 @@ export async function getVehicleDataForMinMax(year = null) {
   // We'll filter in JavaScript if needed
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_1}\`
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -264,7 +265,7 @@ export async function getVehicleDataForMinMax(year = null) {
 // @param {string|null} year - Optional year filter (e.g., '2020', '2025', null for all years)
 export async function getCNGVehicleData(year = null) {
 
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
@@ -274,13 +275,13 @@ export async function getCNGVehicleData(year = null) {
 
     const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_1}\`
     LIMIT 10000
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -303,7 +304,7 @@ export async function getCNGVehicleData(year = null) {
 
 // Returns electric vehicle forecast data from BigQuery
 export async function getElectricVehicleDataForLineChart() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -317,14 +318,14 @@ export async function getElectricVehicleDataForLineChart() {
       annual_mileage,
       incentive,
       CMI_VIN
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_4}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_4}\`
     WHERE fuel_type = 'electric' AND year <= 2025
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -339,7 +340,7 @@ export async function getElectricVehicleDataForLineChart() {
 
 // Returns CNG vehicle forecast data from BigQuery
 export async function getCNGVehicleDataForLineChart() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -353,14 +354,14 @@ export async function getCNGVehicleDataForLineChart() {
       annual_mileage,
       incentive,
       CMI_VIN
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_5}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_5}\`
     WHERE fuel_type = 'cng' AND year <= 2025
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -375,7 +376,7 @@ export async function getCNGVehicleDataForLineChart() {
 
 // Returns incentive vehicle data from BigQuery (Electric and Natural Gas)
 // export async function getIncentiveVehicleData() {
-//   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+//   if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
 //     return [];
 //   }
 
@@ -384,13 +385,13 @@ export async function getCNGVehicleDataForLineChart() {
 //       year,
 //       electric_vehicles ,
 //       natural_gas
-//     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_6}\`
+//     FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_6}\`
 //     ORDER BY year ASC
 //   `;
 
 //   const options = {
 //     query: query,
-//     location: process.env.BIGQUERY_LOCATION_2 || 'US',
+//     location: config.BIGQUERY_LOCATION_2 || 'US',
 //   };
 
 //   try {
@@ -406,19 +407,19 @@ export async function getCNGVehicleDataForLineChart() {
 // Returns CNG XGBoost vehicle data only from BigQuery
 // @param {string|null} year - Optional year filter
 // export async function getCNGVehicleData(year = null) {
-//   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+//   if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
 //     return [];
 //   }
   
 //   const query = `
 //     SELECT *
-//     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_1}\`
+//     FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_1}\`
 //     LIMIT 10000
 //   `;
 
 //   const options = {
 //     query: query,
-//     location: process.env.BIGQUERY_LOCATION_2 || 'US',
+//     location: config.BIGQUERY_LOCATION_2 || 'US',
 //   };
 
 //   try {
@@ -441,19 +442,19 @@ export async function getCNGVehicleDataForLineChart() {
 // Returns Hybrid XGBoost vehicle data only from BigQuery
 // @param {string|null} year - Optional year filter
 // export async function getHybridVehicleData(year = null) {
-//   if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+//   if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
 //     return [];
 //   }
   
 //   const query = `
 //     SELECT *
-//     FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+//     FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_3}\`
 //     LIMIT 10000
 //   `;
 
 //   const options = {
 //     query: query,
-//     location: process.env.BIGQUERY_LOCATION_2 || 'US',
+//     location: config.BIGQUERY_LOCATION_2 || 'US',
 //   };
 
 //   try {
@@ -475,14 +476,14 @@ export async function getCNGVehicleDataForLineChart() {
 
 export async function getProductionPlants() {
 
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   // Selects all columns from the production plants table
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE_PP}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET}.${config.BIGQUERY_TABLE_PP}\`
     WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL
   `;
 
@@ -502,18 +503,18 @@ export async function getProductionPlants() {
 
 // Returns the array of HYBRID vehicle data
 export async function getHybridVehicleDataForMinMax(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_3}\`
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -536,7 +537,7 @@ export async function getHybridVehicleDataForMinMax(year = null) {
 
 // NEW: Fetch Electric/Hybrid data for YEARWISE (US Aggregate) from electric_forecast_final_prophet
 export async function getElectricDataYearwise(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   
@@ -547,13 +548,13 @@ export async function getElectricDataYearwise(year = null) {
       predicted_ev_vehicles,
       actual_ev_vehicles,
       fuel_type
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_14}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_14}\`
     ORDER BY year
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -578,7 +579,7 @@ export async function getElectricDataYearwise(year = null) {
 
 // NEW: Fetch Electric/Hybrid data for STATEWISE from electric_forecast_schema
 export async function getElectricDataStatewise(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   //removed electric_price from select (electric_price,)
@@ -590,13 +591,13 @@ export async function getElectricDataStatewise(year = null) {
       electric_price,
       actual_ev_vehicles,
       predicted_ev_vehicles
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_3}\`
     ORDER BY year, state
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -621,20 +622,20 @@ export async function getElectricDataStatewise(year = null) {
 
 // Returns the array of ELECTRIC vehicle data
 export async function getElectricVehicleData(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
 
   const query = `
     SELECT *
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_3}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_3}\`
     LIMIT 10000
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -657,19 +658,19 @@ export async function getElectricVehicleData(year = null) {
 
 // Fetches vehicle fuel consumption data for bar graph
 export async function getVehicleConsumptionData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   const query = `
     SELECT year, total_vehicle_consumption
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_7}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_7}\`
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -683,19 +684,19 @@ export async function getVehicleConsumptionData() {
 
 // Fetches production vs consumption data for grouped bar graph
 export async function getProductionVsConsumptionData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   const query = `
     SELECT year, total_consumption, total_production
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_8}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_8}\`
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -709,18 +710,18 @@ export async function getProductionVsConsumptionData() {
 
 // Fetches cumulative emission data for EmissionBarGraph
 export async function getCumulativeEmissionData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   const query = `
     SELECT Manufacturer, Model_Year, Engine_Test_Model, Pollutant_Name, TR_Cert_Result, Actual_Cng_Vehicles, Emission_Cert_Status
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_9}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_9}\`
     WHERE Manufacturer IS NOT NULL AND Model_Year IS NOT NULL AND Engine_Test_Model IS NOT NULL AND Pollutant_Name IS NOT NULL
     ORDER BY Model_Year ASC
   `;
   const options = {
     query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
   try {
     const [rows] = await bigquery.query(options);
@@ -732,12 +733,12 @@ export async function getCumulativeEmissionData() {
 
 // Fetches statewise emission data for EmissionBarGraph
 export async function getStatewiseEmissionData(state = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
   let query = `
     SELECT Manufacturer, Model_Year, State, Engine_Test_Model, Pollutant_Name, TR_Cert_Result, Actual_Cng_Vehicles, Emission_Cert_Status
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_10}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_10}\`
     WHERE Manufacturer IS NOT NULL AND Model_Year IS NOT NULL AND Engine_Test_Model IS NOT NULL AND Pollutant_Name IS NOT NULL
   `;
   if (state) {
@@ -747,7 +748,7 @@ export async function getStatewiseEmissionData(state = null) {
   const options = {
     query,
     params: state ? { state } : undefined,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
   try {
     const [rows] = await bigquery.query(options);
@@ -761,7 +762,7 @@ export async function getStatewiseEmissionData(state = null) {
 
 // Fetches and combines Electric Generation and Consumption for bar charts 
 export async function getElectricityGenConsData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return { generation: [], consumption: [] };
   }
 
@@ -769,7 +770,7 @@ export async function getElectricityGenConsData() {
   // Schema: year, total, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
   const genQuery = `
     SELECT year, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_13}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_13}\`
     ORDER BY year ASC
   `;
 
@@ -777,11 +778,11 @@ export async function getElectricityGenConsData() {
   // Schema: year, total, residential, commercial, industrial, transportation
   const consQuery = `
     SELECT year, residential, commercial, industrial, transportation, direct_use
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_12}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_12}\`
     ORDER BY year ASC
   `;
 
-  const options = { location: process.env.BIGQUERY_LOCATION_2 || 'US' };
+  const options = { location: config.BIGQUERY_LOCATION_2 || 'US' };
 
   try {
     // Run queries in parallel for speed
@@ -801,19 +802,19 @@ export async function getElectricityGenConsData() {
 //Fetches Capacity Data
 // Schema: year, total, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
 export async function getElectricityCapacityData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   const query = `
     SELECT year, coal, petroleum, natural_gas, other_fossil_gas, nuclear, hydroelectric, other
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_11}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_11}\`
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -831,7 +832,7 @@ export async function getElectricityCapacityData() {
 
 //To fetch CNG pipeline data
 export async function getCNGPipelinesData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -842,13 +843,13 @@ export async function getCNGPipelinesData() {
       company_operator, 
       operational_status, 
       coordinates 
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_17}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_17}\`
     
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -862,7 +863,7 @@ export async function getCNGPipelinesData() {
 
 //Electric capacity prediction chart
 export async function getElectricCapacityPredictions(state) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -873,7 +874,7 @@ export async function getElectricCapacityPredictions(state) {
       predicted_capacity_mwh, 
       min_predicted_capacity_mwh, 
       max_predicted_capacity_mwh
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_18}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_18}\`
     WHERE state = @state
     ORDER BY year ASC
   `;
@@ -881,7 +882,7 @@ export async function getElectricCapacityPredictions(state) {
   const options = {
     query: query,
     params: { state: state },
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -895,7 +896,7 @@ export async function getElectricCapacityPredictions(state) {
 
 //cng capacity prediction chart
 export async function getCNGCapacityPredictions(state) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -906,7 +907,7 @@ export async function getCNGCapacityPredictions(state) {
       predicted_capacity_mmcf, 
       min_predicted_capacity_mmcf, 
       max_predicted_capacity_mmcf
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_19}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_19}\`
     WHERE state = @state
     ORDER BY year ASC
   `;
@@ -914,7 +915,7 @@ export async function getCNGCapacityPredictions(state) {
   const options = {
     query: query,
     params: { state: state },
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -928,7 +929,7 @@ export async function getCNGCapacityPredictions(state) {
 
 // NEW: Fetch Electric data for LINE CHART STATEWISE from electric_prophet_forecast_2010_2040_final
 export async function getElectricDataStatewiseForLineChart(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -942,14 +943,14 @@ export async function getElectricDataStatewiseForLineChart(year = null) {
       predicted_ev_vehicles,
       annual_mileage,
       CMI_VIN
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_20}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_20}\`
     WHERE year <= 2025
     ORDER BY year, state
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -974,7 +975,7 @@ export async function getElectricDataStatewiseForLineChart(year = null) {
 
 // NEW: Fetch CNG data for LINE CHART STATEWISE from cng_prophet_forecast_2010_2040_final
 export async function getCNGDataStatewiseForLineChart(year = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -988,14 +989,14 @@ export async function getCNGDataStatewiseForLineChart(year = null) {
       predicted_cng_vehicles,
       annual_mileage,
       CMI_VIN
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_21}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_21}\`
     WHERE year <= 2025
     ORDER BY year, state
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1020,7 +1021,7 @@ export async function getCNGDataStatewiseForLineChart(year = null) {
 
 //Fetch CNG Production Plant data 
 export async function getCNGProductionPlants() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1032,13 +1033,13 @@ export async function getCNGProductionPlants() {
       longitude, 
       capacity, 
       liquid_storage
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_15}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_15}\`
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1053,7 +1054,7 @@ export async function getCNGProductionPlants() {
 
 //Fetch Electric Production Plant data 
 export async function getElectricProductionPlants() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1067,13 +1068,13 @@ export async function getElectricProductionPlants() {
       nameplate_capacity, 
       gross_generation, 
       net_generation
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_16}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_16}\`
     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1088,19 +1089,19 @@ export async function getElectricProductionPlants() {
 
 //Fetch CNG Production by State per Year
 export async function getCNGProductionByState() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
 
   const query = `
-    SELECT * FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_22}\`
+    SELECT * FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_22}\`
     ORDER BY date ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1114,14 +1115,14 @@ export async function getCNGProductionByState() {
 
 // Fetches fuel station concentration data for Pie Chart
 export async function getFuelStationConcentrationData(year, state, fuelType) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   // Select table based on fuel type
   const table = fuelType.toLowerCase() === 'electric' 
-    ? process.env.BIGQUERY_TABLE_23_ELECTRIC 
-    : process.env.BIGQUERY_TABLE_24_CNG;
+    ? config.BIGQUERY_TABLE_23_ELECTRIC 
+    : config.BIGQUERY_TABLE_24_CNG;
 
   // Always fetch ALL data (all years, all states) for client-side filtering
   const query = `
@@ -1132,7 +1133,7 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
       concentration_vehicle_type,
       SUM(vin) as total_vin,
       MAX(fuel_station_count) as fuel_station_count
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${table}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${table}\`
     WHERE LOWER(fuel_type) = LOWER(@fuelType)
     GROUP BY year, state, fuel_type, concentration_vehicle_type
     ORDER BY year, state, total_vin DESC
@@ -1140,7 +1141,7 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
     params: { fuelType: fuelType },
   };
 
@@ -1156,7 +1157,7 @@ export async function getFuelStationConcentrationData(year, state, fuelType) {
 // Fetches CNG Line Plot data from Line_Plot_CNG_Final table
 // Returns data for Total Supply, Consumption by Sector, and Natural Gas Spot Price
 export async function getCNGLinePlotData(label = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1193,7 +1194,7 @@ export async function getCNGLinePlotData(label = null) {
       \`2048\` as year_2048,
       \`2049\` as year_2049,
       \`2050\` as year_2050
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_25}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_25}\`
   `;
 
   if (label) {
@@ -1202,7 +1203,7 @@ export async function getCNGLinePlotData(label = null) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
     params: label ? { label: label } : undefined,
   };
 
@@ -1219,7 +1220,7 @@ export async function getCNGLinePlotData(label = null) {
 // Fetches CNG Bar Graph data from bar_graph_cng_final table
 // Returns data for Production, Net Import, and Consumption by Sector
 export async function getCNGBarGraphData(label = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1257,7 +1258,7 @@ export async function getCNGBarGraphData(label = null) {
       \`2048\` as year_2048,
       \`2049\` as year_2049,
       \`2050\` as year_2050
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_26}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_26}\`
   `;
 
   if (label) {
@@ -1266,7 +1267,7 @@ export async function getCNGBarGraphData(label = null) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
     params: label ? { label: label } : undefined,
   };
 
@@ -1284,7 +1285,7 @@ export async function getCNGBarGraphData(label = null) {
 // Returns data for Electricity Sales by Sector and Electricity Prices by Sector
 // Sector is always "Commercial"
 export async function getElectricityLinePlotData(label = null) {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1322,7 +1323,7 @@ export async function getElectricityLinePlotData(label = null) {
       \`2048\` as year_2048,
       \`2049\` as year_2049,
       \`2050\` as year_2050
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_27}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_27}\`
     WHERE Sector = 'Commercial'
   `;
 
@@ -1332,7 +1333,7 @@ export async function getElectricityLinePlotData(label = null) {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
     params: label ? { label: label } : undefined,
   };
 
@@ -1349,7 +1350,7 @@ export async function getElectricityLinePlotData(label = null) {
 // Fetches Electricity Fuel Bar Graph data from Final_Ele_Fuel table
 // Returns data for Total Net Electricity Generation by Fuel
 export async function getElectricityFuelData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1387,13 +1388,13 @@ export async function getElectricityFuelData() {
       \`2048\` as year_2048,
       \`2049\` as year_2049,
       \`2050\` as year_2050
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_28}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_28}\`
     WHERE Label = 'Total Net Electricity Generation by Fuel'
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1410,7 +1411,7 @@ export async function getElectricityFuelData() {
 // Returns data for Total Net Electricity Generation, Net Available to the Grid, 
 // Net Generation to the Grid, and Total Use From Grid
 export async function getElectricityGenerationLinePlotData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
@@ -1447,7 +1448,7 @@ export async function getElectricityGenerationLinePlotData() {
       \`2048\` as year_2048,
       \`2049\` as year_2049,
       \`2050\` as year_2050
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_29}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_29}\`
     WHERE Label IN (
       'Total Net Electricity Generation',
       'Net Available to the Grid',
@@ -1458,7 +1459,7 @@ export async function getElectricityGenerationLinePlotData() {
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
@@ -1473,19 +1474,19 @@ export async function getElectricityGenerationLinePlotData() {
 
 // Fetch Overhead and Using from grid data
 export async function getOverheadAndUsingElectricData() {
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.GCP_PROJECT_ID) {
+  if (config.NEXT_PHASE === 'phase-production-build' || !config.GCP_PROJECT_ID) {
     return [];
   }
 
   const query = `
     SELECT state, year, gross_generation, net_generation, overhead_to_grid, using_from_grid
-    FROM \`${process.env.GCP_PROJECT_ID}.${process.env.BIGQUERY_DATASET_2}.${process.env.BIGQUERY_TABLE_30}\`
+    FROM \`${config.GCP_PROJECT_ID}.${config.BIGQUERY_DATASET_2}.${config.BIGQUERY_TABLE_30}\`
     ORDER BY year ASC
   `;
 
   const options = {
     query: query,
-    location: process.env.BIGQUERY_LOCATION_2 || 'US',
+    location: config.BIGQUERY_LOCATION_2 || 'US',
   };
 
   try {
