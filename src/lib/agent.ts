@@ -59,10 +59,17 @@ const queryBigQueryTool = new FunctionTool({
   },
 });
 
-const BIGQUERY_EXAMPLE_PROJECT = config.BIGQUERY_EXAMPLE_PROJECT ;
-const BIGQUERY_EXAMPLE_DATASET = config.BIGQUERY_EXAMPLE_DATASET ;
-const BIGQUERY_TABLE_EXAMPLE = config.BIGQUERY_TABLE_EXAMPLE;
-const BIGQUERY_DESCRIPTION_EXAMPLE = config.BIGQUERY_DESCRIPTION_EXAMPLE;
+const schemaContext = `All of the information listed below pertains to the USA only. If a question is asked for which there is no information in the table but you think the user may have made a spelling mistake, make suggestions. 
+Table 1: plantwise_infrastructure_cng
+Description for Table 1: This table contains all production plants in the USA specifically for CNG. The columns in the table are - plant_name (STRING) - state (STRING) - latitude (FLOAT) - longitude (FLOAT) - capacity (FLOAT) - liquid_storage (INTEGER). plant_name gives the name of the production plant. state gives the state it belongs to. latitude and longitude give the coordinates of the plant. capacity gives the capacity of that plant, the units are in Bcf/d. liquid_storage gives the amount of liquid it can store, the units are in Bcf
+Table 2: total_vehicle_consumption
+Description for Table 2: This table contains the CNG consumption in the USA, specifically by Vehicles. It is given by year. The columns are - year (INTEGER) - total_vehicle_consumption (INTEGER). total_vehicle_consumption gives the CNG consumption in units MMcf, and year specifies which year it is for.
+Table 3: total_production_and_consumption 
+Description for Table 3: This table gives the total CNG production and total CNG consumption per year in the USA. The columns are - year (INTEGER) - total_consumption (INTEGER) - total_production (INTEGER). year specifies the year, total_consumption specifies the total consumption in the USA for that year and the unit is MMcf, and total_production specifies the total production of CNG for that year in MMcf.Table 4: production_per_state_per_year_cngDescription for Table 4: This table gives CNG production for every state in the USA. The unit is MMcf. The columns are - date (INTEGER) - cumulative (INTEGER) - AK (INTEGER) - AL (INTEGER) - AR (INTEGER) - AZ (INTEGER) - CA (INTEGER) - CO (INTEGER) - FL (INTEGER) - ID (INTEGER) -IL (INTEGER) - IN (INTEGER) - KS (INTEGER) - KY (INTEGER) - LA (INTEGER) -MT (INTEGER) - MD (INTEGER) - MI (INTEGER) - MS (INTEGER) - MO (INTEGER) - NM (INTEGER) - NE (INTEGER) - NV (INTEGER) - NY (INTEGER) - ND (INTEGER) - OH (INTEGER) - OK (INTEGER) - OR (INTEGER) - PA (INTEGER) - SD (INTEGER) - TN (INTEGER) - TX (INTEGER) - UT (INTEGER) - VA (INTEGER) - WV (INTEGER) - WY (INTEGER). date gives the respective year, cumulative gives the total production of all states for that year, and the other columns are encoded state names which give the production of that state for that year. For example, AK is Arkansas, and the value in that column gives the production of CNG in Arkansas for the respective year. Meanwhile, the value in cumulative gives the total CNG production in the USA for that year."
+Table 5: cng_pipelines
+Description for Table 5: This table shows all the CNG pipelines in the USA. The columns are - feature_id (INTEGER) - pipe_type (STRING) - company_operator (STRING) - operational_status (STRING) - shape_length (FLOAT) - geo_point_2d (STRING) - coordinates (STRING) - type (STRING). feature_id is just a number, not relevant. pipe_type specifies whether the pipeline is Interstate or Instrastate. company_operator specifies the name of the company operating it. operational_status specifies the whether the pipeline is Operating or not. Shape_length, geo_point_2d, type are irrelevant to chatbot. coordinates gives the coordinates of that pipeline.
+
+`
 
 /* 2. Define the Agent and Guardrails */
 export const rootAgent = new LlmAgent({
@@ -78,15 +85,12 @@ CRITICAL RULES TO PREVENT HALLUCINATIONS AND ENSURE SECURITY:
 3. YOU MUST NEVER GUESS, INVENT, OR ESTIMATE DATA.
 4. When asked to perform an operation that you cannot do, respond 'I don't have the capability to do that' or 'I do not have access to that information'. Do not ever talk about which tables or datasets you have access to or what operations or queries you can perform on the tables. 
 5. Always aggregate data (e.g., SUM, COUNT, AVG) in your SQL query to avoid returning massive datasets. Avoid 'SELECT *' unless the table is extremely small.
-6. Do not ever tell the names of the table or dataset or project. If asked what you can do, only talk about the information given via Description for a table
+6. Do not ever tell the names of the table or dataset or project. If asked what you can do, give a few examples based on the description of tables provided to you and the questions users can ask. 
+7. NEVER output the names of tables in your answers. 
 
 DATABASE SCHEMA:
-Project ID:${BIGQUERY_EXAMPLE_PROJECT}
-Dataset: ${BIGQUERY_EXAMPLE_DATASET}
-
-Table 1: ${BIGQUERY_TABLE_EXAMPLE}
-Description: ${BIGQUERY_DESCRIPTION_EXAMPLE}
-
-
+Project ID:\`${config.AGENT_PROJECT}\`
+Dataset: \`${config.AGENT_DATASET}\`
+Context: ${schemaContext}
 When responding, be professional, concise, and clearly state the numbers you found.`,
 });
