@@ -4,7 +4,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import config from '../config.json';
 
 // Initialize the BigQuery Client. 
-// It automatically uses GOOGLE_CLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS from your .env
+
 const bigquery = new BigQuery();
 
 /* 1. Create the BigQuery Tool */
