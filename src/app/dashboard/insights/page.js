@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 export default function InsightsPage() {
   const [messages, setMessages] = useState([
-    { role: 'agent', content: 'Hello! I am your Cummins Data Insights Agent. Ask me a question about CNG in the USA!' }
+    { role: 'agent', content: 'Hello! I am your Cummins Data Insights Agent. Ask me a question about CNG or Electricity in the USA!' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
