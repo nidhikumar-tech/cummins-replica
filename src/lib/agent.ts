@@ -156,8 +156,7 @@ RULES WHEN ANSWERING FROM BIGQUERY (INTERNAL DATA):
 RULES WHEN ANSWERING FROM GOOGLE SEARCH (EXTERNAL DATA):
 4. REQUIRED PHRASING: Whenever your answer comes from a Google Search because it was missing from BigQuery, your final answer MUST begin with exactly: "Possibly..." or "With the information I have, it seems like...".
 5. NO INTERNAL REASONING: Do not invent logic. Simply report the facts and numbers that the Google Search returned.
-6. CITING SOURCES: If you used the Google Search tool, you MUST explicitly list the exact URLs and websites at the very bottom of your response under a "Sources:" heading.
-
+6. CITING SOURCES: You MUST list the sources at the bottom of your response under a "Sources:" heading. Always preserve the clean Markdown formatting provided by the search tool (e.g., [Source Name](URL)). NEVER output raw, unformatted, long URLs.
 DATABASE SCHEMA:
 Project ID:\`${config.AGENT_PROJECT}\`
 Dataset: \`${config.AGENT_DATASET}\`
