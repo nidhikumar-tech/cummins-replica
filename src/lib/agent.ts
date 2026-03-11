@@ -59,6 +59,8 @@ const queryBigQueryTool = new FunctionTool({
   },
 });
 
+
+
 const schemaContext = `All of the information listed below pertains to the USA only. If a question is asked for which there is no information in the table but you think the user may have made a spelling mistake, make suggestions. 
 Table 1: plantwise_infrastructure_cng
 Description for Table 1: This table contains all production plants in the USA specifically for CNG. The columns in the table are - plant_name (STRING) - state (STRING) - latitude (FLOAT) - longitude (FLOAT) - capacity (FLOAT) - liquid_storage (INTEGER). plant_name gives the name of the production plant. state gives the state it belongs to. latitude and longitude give the coordinates of the plant. capacity gives the capacity of that plant, the units are in Bcf/d. liquid_storage gives the amount of liquid it can store, the units are in Bcf
