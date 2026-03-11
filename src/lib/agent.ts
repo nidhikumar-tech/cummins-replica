@@ -1,4 +1,5 @@
-import { FunctionTool, LlmAgent, GOOGLE_SEARCH } from '@google/adk';
+import { runWebSearch } from './searchAgent';
+import { FunctionTool, LlmAgent} from '@google/adk';
 import { z } from 'zod';
 import { BigQuery } from '@google-cloud/bigquery';
 import config from '../config.json';
@@ -65,46 +66,20 @@ const queryBigQueryTool = new FunctionTool({
   },
 });
 
-const webSearchTool = new FunctionTool({
+/* 1b. Create the Web Search Tool that calls the Sub-Agent */
+const delegateToSearchAgentTool = new FunctionTool({
   name: 'search_web',
   description: 'Searches the public internet for up-to-date information. ONLY use this if the BigQuery tables do not have the answer.',
   parameters: z.object({
-    query: z.string().describe("The search query. To prioritize EIA data, append 'site:eia.gov' to this string."),
+    query: z.string().describe("The exact question or topic you need the sub-agent to research on Google."),
   }),
   execute: async ({ query }) => {
-    try {
-      console.log(`\n🔍 [Agent is searching the web]: ${query}\n`);
-      
-      const apiKey = process.env.GOOGLE_SEARCH_API_KEY; 
-      const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
-      
-      if (!apiKey || !cx) {
-        return { 
-          status: 'error', 
-          message: 'Search API keys are missing. Tell the user you cannot search the web right now and must rely only on the internal database.' 
-        };
-      }
-
-      const response = await fetch(`https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`);
-      const data = await response.json();
-
-      if (!data.items || data.items.length === 0) {
-        return { status: 'success', data: "No relevant search results found." };
-      }
-
-      // Format the top 3 results into plain text for the LLM to read safely
-      const formattedResults = data.items.slice(0, 3).map((item: any) => ({
-        title: item.title,
-        link: item.link,
-        snippet: item.snippet
-      }));
-
-      return { status: 'success', data: formattedResults };
-      
-    } catch (error: any) {
-      console.error(`❌ [Search Error]:`, error.message);
-      return { status: 'error', message: `Search failed: ${error.message}` };
-    }
+    console.log(`\n🕵️‍♂️ [Root Agent delegating to Search Agent]: "${query}"\n`);
+    
+    // This calls the other AI!
+    const answer = await runWebSearch(query); 
+    
+    return { status: 'success', data: answer };
   },
 });
 
@@ -165,7 +140,7 @@ export const rootAgent = new LlmAgent({
   name: 'cummins_insights_agent',
   model: 'gemini-2.5-pro',
   description: 'A strategic data analyst agent that answers complex questions using the Cummins BigQuery database and Vertex AI Google Search grounding.',
-  tools: [queryBigQueryTool, webSearchTool],
+  tools: [queryBigQueryTool, delegateToSearchAgentTool],
   instruction: `You are a data insights agent for Cummins. Your job is to answer user questions using a strict priority system: Internal Database First, Web Search Second.
 
 WORKFLOW ENFORCEMENT (BIGQUERY FIRST, THEN GOOGLE SEARCH):
