@@ -1,14 +1,9 @@
-requirements.txt
-
-
-
-import { FunctionTool, LlmAgent } from '@google/adk';
+import { FunctionTool, LlmAgent, GOOGLE_SEARCH } from '@google/adk';
 import { z } from 'zod';
 import { BigQuery } from '@google-cloud/bigquery';
 import config from '../config.json';
 
-// Initialize the BigQuery Client. 
-
+// Initialize the BigQuery Client. It uses your Vertex AI / GCP ADC automatically.
 const bigquery = new BigQuery();
 
 /* 1. Create the BigQuery Tool */
@@ -34,7 +29,6 @@ const queryBigQueryTool = new FunctionTool({
       // GUARDRAIL 2: Must not contain destructive keywords
       const forbiddenWords = ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'CREATE', 'GRANT', 'TRUNCATE'];
       for (const word of forbiddenWords) {
-        // Using regex to check for exact word matches
         const regex = new RegExp(`\\b${word}\\b`);
         if (regex.test(sanitizedQuery)) {
           console.warn(`🛑 [BLOCKED] Agent tried a destructive command: ${query}`);
@@ -52,6 +46,14 @@ const queryBigQueryTool = new FunctionTool({
       
       if (!rows || rows.length === 0) {
         return { status: 'success', data: "Query executed successfully, but returned 0 rows." };
+      }
+
+      if (rows.length > 30) {
+        console.warn(`⚠️ [WARNING] Query returned ${rows.length} rows. Forcing agent to aggregate.`);
+        return { 
+          status: 'error', 
+          message: `Query returned ${rows.length} rows, which is too large. You MUST use SQL aggregations (like COUNT, SUM, GROUP BY, or LIMIT 10) to reduce the data size before answering.` 
+        };
       }
 
       return { status: 'success', data: rows };
@@ -113,29 +115,35 @@ Table 24: line_plot_sector_elec_final
 Description for Table 24: This table gives the predictions by EIA ie USA Energy Information Administration for two things: electricity sales and electricity prices. The columns are: - Label (STRING) - Sector (STRING) - Case (STRING) - Units (STRING) - 2023 (FLOAT) - 2024 (FLOAT) - 2025 (FLOAT) - 2026 (FLOAT) - 2027 (FLOAT) - 2028 (FLOAT) - 2029 (FLOAT) - 2030 (FLOAT)- 2031 (FLOAT) - 2032 (FLOAT) - 2033 (FLOAT) - 2034 (FLOAT) - 2035 (FLOAT) - 2036 (FLOAT) - 2037 (FLOAT) - 2038 (FLOAT) - 2039 (FLOAT) - 2040 (FLOAT) - 2041 (FLOAT) - 2042 (FLOAT) - 2043 (FLOAT) - 2044 (FLOAT) - 2045 (FLOAT) - 2046 (FLOAT) - 2047 (FLOAT) - 2048 (FLOAT) - 2049 (FLOAT) - 2050 (FLOAT). The Label column can be one of: Electricity Prices by Sector (which is the electricity price) or Electricity Sales by Sector (which is electricity sales). These predictions are made under difference economic conditions, which is given by the Case column which can be one of All, AEO2023 Reference Case, High oil and gas supply, Low economic growth, High zero-carbon technology cost, Alternative transportation, low oil price, Low zero-carbon technology cost, Reference case, High economic growth, Alternative electricity, High oil price, Low oil and gas supply.  By default, you should talk about the reference case and specify that, also mention the different cases that are available and say that we do have predictions for these economic conditions as well. 
 Table 25: final_ele_fuel
 Description for Table 25: This table gives the predictions by EIA ie USA Energy Information Administration for total net electricity generation by fuel. The columns are: - Label (STRING) - Fuel (STRING) - Case (STRING) - Units (STRING) - 2023 (FLOAT) - 2024 (FLOAT) - 2025 (FLOAT) - 2026 (FLOAT) - 2027 (FLOAT) - 2028 (FLOAT) - 2029 (FLOAT) - 2030 (FLOAT)- 2031 (FLOAT) - 2032 (FLOAT) - 2033 (FLOAT) - 2034 (FLOAT) - 2035 (FLOAT) - 2036 (FLOAT) - 2037 (FLOAT) - 2038 (FLOAT) - 2039 (FLOAT) - 2040 (FLOAT) - 2041 (FLOAT) - 2042 (FLOAT) - 2043 (FLOAT) - 2044 (FLOAT) - 2045 (FLOAT) - 2046 (FLOAT) - 2047 (FLOAT) - 2048 (FLOAT) - 2049 (FLOAT) - 2050 (FLOAT). The Label can only be Total Net Electricity Generation by Fuel. The Fuel gives the source, which can be Hydrogen, Other, Petroleum, Coal, Nuclear Power, Renewable sources, Natural Gas. These predictions are made under difference economic conditions, which is given by the Case column which can be one of All, AEO2023 Reference Case, High oil and gas supply, Low economic growth, High zero-carbon technology cost, Alternative transportation, low oil price, Low zero-carbon technology cost, Reference case, High economic growth, Alternative electricity, High oil price, Low oil and gas supply.  By default, you should talk about the reference case and specify that, also mention the different cases that are available and say that we do have predictions for these economic conditions as well. 
-
 `
 
 /* 2. Define the Agent and Guardrails */
 export const rootAgent = new LlmAgent({
   name: 'cummins_insights_agent',
-  model: 'gemini-2.5-flash',
-  description: 'A data analyst agent that answers questions using the Cummins BigQuery database.',
+  model: 'gemini-2.5-pro',
+  description: 'A strategic data analyst agent that answers complex questions using the Cummins BigQuery database and Vertex AI Google Search grounding.',
   tools: [queryBigQueryTool],
-  instruction: `You are a data insights agent for Cummins. Your job is to answer user questions by querying the databases.
+  instruction: `You are a data insights agent for Cummins. Your job is to answer user questions using a strict priority system: Internal Database First, Web Search Second.
 
-CRITICAL RULES TO PREVENT HALLUCINATIONS AND ENSURE SECURITY:
-1. YOU ARE IN A STRICT READ-ONLY ENVIRONMENT. You only have permission to execute SELECT queries.
-2. NEVER attempt to use INSERT, UPDATE, DELETE, ALTER, or DROP commands. They will fail.
-3. YOU MUST NEVER GUESS, INVENT, OR ESTIMATE DATA.
-4. When asked to perform an operation that you cannot do, respond 'I don't have the capability to do that' or 'I do not have access to that information'. Do not ever talk about which tables or datasets you have access to or what operations or queries you can perform on the tables. 
-5. Always aggregate data (e.g., SUM, COUNT, AVG) in your SQL query to avoid returning massive datasets. Avoid 'SELECT *' unless the table is extremely small.
-6. Do not ever tell the names of the table or dataset or project. If asked what you can do, give a few examples based on the description of tables provided to you and the questions users can ask. 
-7. NEVER output the names of tables in your answers. 
+WORKFLOW ENFORCEMENT (BIGQUERY FIRST, THEN GOOGLE SEARCH):
+Step 1: Always check the DATABASE SCHEMA below. If the data exists in BigQuery, you MUST use the \`query_bigquery\` tool to write and execute SQL.
+Step 2: If the \`query_bigquery\` tool returns 0 rows, returns an error, or if the user asks for data clearly NOT present in the schema, DO NOT attempt to reason, guess, or calculate an answer yourself. You MUST immediately fall back to using the Google Search tool.
+Step 3: When using the Google Search tool for energy or fuel data, first try appending " site:eia.gov" to your search query to prioritize the US Energy Information Administration. If you cannot find a good answer there, perform a broader Google Search without the site restriction.
+
+RULES WHEN ANSWERING FROM BIGQUERY (INTERNAL DATA):
+1. EXPLAINING YOUR DATA: Explain your reasoning and point out exactly which data you used. NEVER output raw table names (e.g., "Table 15"). Instead, refer to them by their plain-english descriptions (e.g., "Based on the state-wise electric capacity data").
+2. ALWAYS aggregate data (SUM, COUNT, AVG, or LIMIT) in your SQL to avoid returning massive datasets.
+3. NEVER GUESS or estimate raw data numbers. STRICT READ-ONLY.
+
+RULES WHEN ANSWERING FROM GOOGLE SEARCH (EXTERNAL DATA):
+4. REQUIRED PHRASING: Whenever your answer comes from a Google Search because it was missing from BigQuery, your final answer MUST begin with exactly: "Possibly..." or "With the information I have, it seems like...".
+5. NO INTERNAL REASONING: Do not invent logic. Simply report the facts and numbers that the Google Search returned.
+6. CITING SOURCES: If you used the Google Search tool, you MUST explicitly list the exact URLs and websites at the very bottom of your response under a "Sources:" heading.
 
 DATABASE SCHEMA:
 Project ID:\`${config.AGENT_PROJECT}\`
 Dataset: \`${config.AGENT_DATASET}\`
 Context: ${schemaContext}
-When responding, be professional, concise, and clearly state the numbers you found.`,
+
+When responding, be professional, concise, clearly state the numbers you found, and show your steps.`,
 });
